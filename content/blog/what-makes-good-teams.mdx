@@ -1,0 +1,56 @@
+export const metadata = {
+  title: "What Makes a Good Team, In My Experience",
+  description:
+    "After a few years across startups on three continents, the teams that shipped well shared a handful of unglamorous traits. Here's what actually mattered.",
+  date: "2026-06-28",
+  tags: ["Teams", "Engineering Culture", "Leadership"],
+};
+
+I've worked remote from Sydney, remote across US timezones, and onsite in Berlin.
+Different products, different stacks, different funding stages. The teams that
+consistently shipped good work weren't the ones with the most talent in the
+room — they were the ones with a few boring habits done relentlessly.
+
+## Good teams make decisions cheap to reverse
+
+The best teams I've been on optimized for _reversibility_, not correctness. Nobody
+waited three weeks for the perfect architecture. We shipped the smallest thing
+that could teach us something, put it behind a flag, and watched it.
+
+> The goal isn't to be right on the first try. The goal is to be wrong quickly
+> and cheaply.
+
+At Spekit, this is how we shipped embeddings-based search into the extension. We
+didn't design the "final" retrieval system. We shipped a naive vector match,
+measured it against a survey, and iterated. The 20% effectiveness bump came from
+_iterations_, not from the first design.
+
+## They over-communicate the "why", not the "what"
+
+Weak teams hand you tickets. Strong teams hand you problems.
+
+When I built Faircado's visual search, nobody handed me a spec for image cropping
+and object detection. I got the outcome we wanted — _let users search by pointing
+at a thing_ — and the freedom to figure out the how. That trust is what let me
+choose the model, own the cropping UX, and ship something that lifted retention
+25%.
+
+## They treat UX and delivery as teammates, not stakeholders
+
+The churn-saving work I'm proudest of only happened because engineering, UX, and
+delivery were in the same room arguing about the same problem. Not a handoff. Not
+a "requirements doc". A shared whiteboard and a shared incentive.
+
+## They keep the codebase honest
+
+- Migrate the legacy thing before it calcifies.
+- Convert JS to TS while you're in there anyway.
+- Write the test that would have caught the bug you just fixed.
+
+None of this is heroic. It's hygiene. But teams that skip it spend their velocity
+on firefighting, and teams that don't get to spend it on the product.
+
+## The short version
+
+A good team is a group of people who trust each other enough to move fast, and
+respect the codebase enough to keep it possible. Everything else is detail.

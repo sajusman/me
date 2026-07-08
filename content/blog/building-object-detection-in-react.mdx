@@ -1,0 +1,107 @@
+export const metadata = {
+  title: "Building an Object Detection Service for Visual Search",
+  description:
+    "How I chose a model, handled image cropping in React, and shipped a visual search flow that lifted retention 25% — including the parts that were harder than the ML.",
+  date: "2026-05-30",
+  tags: ["Machine Learning", "React", "Product Engineering"],
+};
+
+Faircado's visual search lets a user point at an object — a lamp, a jacket, a
+chair — and find a second-hand alternative. Under the hood it's object detection
+plus retrieval. But the interesting engineering wasn't the model. It was
+everything around it.
+
+## Choosing the model
+
+The constraints shaped the choice more than raw accuracy:
+
+- It had to run **server-side** — we couldn't ship a heavy model to a React
+  Native bundle.
+- It had to handle **open-vocabulary-ish** categories, since our catalog is broad.
+- It had to be **cheap enough** to run on every search without wrecking margins.
+
+I evaluated options on Hugging Face against a small internal test set of real
+user photos — not benchmark images, _real_ ones with bad lighting and clutter.
+Benchmark accuracy is a trap; the model that wins on COCO can fall apart on a
+blurry phone photo of a couch.
+
+The pipeline ended up looking like this:
+
+```ts
+async function detectObjects(image: Blob): Promise<Detection[]> {
+  const res = await fetch(DETECTION_ENDPOINT, {
+    method: "POST",
+    body: image,
+    headers: { "content-type": "application/octet-stream" },
+  });
+
+  const raw = (await res.json()) as RawDetection[];
+
+  // Filter noise before it ever reaches the UI.
+  return raw
+    .filter((d) => d.score >= CONFIDENCE_THRESHOLD)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_SELECTABLE_OBJECTS);
+}
+```
+
+The `CONFIDENCE_THRESHOLD` and `MAX_SELECTABLE_OBJECTS` did more for perceived
+quality than any model swap. Showing users five confident boxes beats showing
+them twenty guesses.
+
+## The hard part: cropping in React
+
+Object detection gives you bounding boxes in the coordinate space of the
+_original_ image. But the user sees the image scaled to fit their screen. Every
+crop bug lives in the gap between those two coordinate spaces.
+
+The rules I ended up encoding:
+
+1. Always store detections in **natural image coordinates**, never display
+   coordinates.
+2. Compute a single `scale` factor from natural → displayed size and reuse it for
+   both rendering boxes and mapping taps.
+3. When the user selects a box, crop from the **original** file, not the
+   on-screen canvas.
+
+```tsx
+function toDisplayBox(box: Box, scale: number): Box {
+  return {
+    x: box.x * scale,
+    y: box.y * scale,
+    width: box.width * scale,
+    height: box.height * scale,
+  };
+}
+
+function cropFromOriginal(image: HTMLImageElement, box: Box): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = box.width;
+  canvas.height = box.height;
+  const ctx = canvas.getContext("2d")!;
+  // Source coords are natural; destination fills the crop canvas.
+  ctx.drawImage(
+    image,
+    box.x, box.y, box.width, box.height,
+    0, 0, box.width, box.height,
+  );
+  return new Promise((resolve) =>
+    canvas.toBlob((blob) => resolve(blob!), "image/jpeg", 0.9),
+  );
+}
+```
+
+On React Native the primitives differ, but the principle is identical: **one
+source of truth for coordinates, translated at the last possible moment.**
+
+## What actually moved retention
+
+The 25% lift didn't come from the detector. It came from making the interaction
+feel _fast and forgiving_:
+
+- Optimistic UI — draw the boxes the instant detection returns.
+- Let users tap the wrong box and re-select without re-uploading.
+- Crop and search in one motion, no confirmation step.
+
+The ML got us the boxes. The UX got us the retention. Both matter, but only one
+of them shows up in a model card.
