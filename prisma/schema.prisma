@@ -15,13 +15,36 @@ datasource db {
 /// An anonymous visitor identity. Created automatically on first visit; the
 /// username is auto-generated (e.g. "Swift-Falcon-4821").
 model Profile {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   // Links this profile to the signed session cookie set by proxy.ts.
-  sessionId  String   @unique
-  username   String   @unique
-  avatarSeed String   @default(uuid())
-  createdAt  DateTime @default(now())
-  lastSeenAt DateTime @default(now())
+  sessionId  String    @unique
+  username   String    @unique
+  avatarSeed String    @default(uuid())
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  comments   Comment[]
 
   @@map("profiles")
+}
+
+/// A comment on a blog post. Top-level comments have `parentId = null`; replies
+/// point at their parent. Depth is capped at one level (a reply cannot itself be
+/// replied to) — enforced in application code (api/comments/reply.ts).
+model Comment {
+  id        String   @id @default(uuid())
+  // Blog post slug (posts live as MDX files, not in the DB).
+  postSlug  String
+  body      String
+  authorId  String
+  author    Profile  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // Null for a top-level comment; set for a reply.
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  createdAt DateTime @default(now())
+
+  @@index([postSlug, createdAt])
+  @@index([parentId])
+  @@index([authorId])
+  @@map("comments")
 }

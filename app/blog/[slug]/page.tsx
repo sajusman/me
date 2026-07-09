@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { getPostSlugs, getPostMeta, formatDate } from "@/lib/posts";
 import { Badge } from "@/components/ui/badge";
+import { Comments } from "@/components/features/comments/comments";
 
 export function generateStaticParams() {
   return getPostSlugs().map((slug) => ({ slug }));
@@ -83,6 +84,8 @@ export default async function BlogPost({
       <article className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-a:font-medium prose-a:text-primary prose-a:underline-offset-4 prose-pre:border prose-pre:bg-muted/40 prose-img:rounded-lg">
         <Content />
       </article>
+
+      <Comments slug={slug} />
     </div>
   );
 }
