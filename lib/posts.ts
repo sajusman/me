@@ -1,15 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-
-export type PostMeta = {
-  title: string;
-  description: string;
-  date: string;
-  tags?: string[];
-  readingTime?: string;
-};
-
-export type Post = PostMeta & { slug: string };
+import type { Post, PostMeta } from "@/types/posts";
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "blog");
 
