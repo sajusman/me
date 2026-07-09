@@ -1,0 +1,202 @@
+export const metadata = {
+  title: "The art of building a design system",
+  description:
+    "Why teams drift into a pile of one-off components, why a little upfront investment pays off for years, and how to design a system that stays flexible enough to survive a rebrand.",
+  date: "2026-05-30",
+  tags: ["Design Systems", "React", "Frontend Architecture"],
+};
+
+Most teams don't decide to build a messy component library. They arrive at one.
+Early on, someone needs a modal, so they build a modal. A month later someone
+needs a _slightly_ different modal, so they add a prop. Then another prop. Then a
+second modal, because the first one was too tangled to touch. Multiply that
+across buttons, inputs, dropdowns, and a year of shipping under pressure, and you
+end up with a dozen near-duplicate components, each bloated with flags nobody
+remembers the reason for.
+
+The symptoms are always the same:
+
+- Components carry props that made sense once and now just add surface area.
+- The same UI element exists in three variations that look _almost_ alike.
+- Extending anything is scary, so people copy-paste instead.
+- There's no documentation, so the only way to know what a component does is to
+  read its source.
+
+Everyone agrees a system _should_ exist. But building one feels like a tax on
+this sprint, so it keeps sliding. The irony is that the upfront cost is small
+compared to the compounding cost of not having one every new feature pays
+interest on that missing foundation.
+
+## Spend the time early
+
+The core idea is unglamorous: a few deliberate decisions at the start save an
+enormous amount of time later. A design system isn't a UI kit you bolt on at the
+end. It's a set of constraints you agree to _before_ the components multiply.
+
+You don't have to refactor the whole app to start. You do have to decide, once,
+what the primitives are and how they're allowed to vary.
+
+## Design around tokens, not colors
+
+The single highest-leverage decision is to never let a raw color leak into a
+component. Instead, define **semantic tokens** agnostic names that describe
+_role_, not _appearance_. If you name a color `pink`, you'll be refactoring every
+usage the day design switches to purple. If you name it `primary`, the switch is
+a one-line change.
+
+```ts
+// Roles, not hues. Swapping the brand color never touches a component.
+type Palette = {
+  primary: string;
+  secondary: string;
+  neutral: string;
+};
+
+// A single source of truth. Change this, and everything downstream follows.
+const palette: Palette = {
+  primary: "#6d28d9", // was pink last quarter nothing else had to change
+  secondary: "#0ea5e9",
+  neutral: "#71717a",
+};
+```
+
+The payoff shows up when a component needs more than one shade. A button has a
+default state, a hover, an active, a disabled. Those should be _derived_ from the
+token, not hand-picked. Compute the scale once, and changing `primary` recomputes
+every state automatically.
+
+```ts
+type StateScale = {
+  base: string;
+  hover: string;
+  active: string;
+  disabled: string;
+};
+
+// How much each state deviates from the base token. Named, not magic.
+const HOVER_DARKEN = 8;
+const ACTIVE_DARKEN = 16;
+const DISABLED_ALPHA = 0.4;
+
+// Deriving states from one token means "make primary purple" just works.
+function scaleFromToken(token: string): StateScale {
+  return {
+    base: token,
+    hover: shade(token, -HOVER_DARKEN),
+    active: shade(token, -ACTIVE_DARKEN),
+    disabled: alpha(token, DISABLED_ALPHA),
+  };
+}
+```
+
+In a production system those deltas become tokens of their own, so individual
+themes can tune how aggressive a hover or disabled state feels but the shape of
+the idea stays the same. This is the mechanism that makes a rebrand a config
+change instead of a project.
+
+## Wrap the library, don't marry it
+
+You almost never need to build primitives from scratch. A mature headless or
+component library already solves accessibility, focus management, and the
+thousand edge cases you'd rediscover the hard way. Building on one is the right
+call.
+
+The mistake is letting that library's API leak into your product code. If every
+feature imports the third-party button directly, you've quietly made the entire
+codebase depend on that vendor. Swapping it later means touching everything.
+
+Instead, put a thin package between your app and the library. It re-exports your
+own components with your own, deliberately small, interfaces and hides the
+vendor's surface entirely.
+
+```tsx
+import { Button as VendorButton } from "@vendor/ui";
+
+// The ONLY button props the rest of the app is allowed to know about.
+export type ButtonProps = {
+  size: "sm" | "md" | "lg";
+  variant: "solid" | "outline" | "ghost";
+  colorScheme: keyof Palette;
+  children: React.ReactNode;
+  onClick?: () => void;
+};
+
+export function Button({ colorScheme, ...rest }: ButtonProps) {
+  const scale = scaleFromToken(palette[colorScheme]);
+
+  // All the vendor-specific wiring lives here, and only here.
+  return <VendorButton {...rest} styleConfig={scale} />;
+}
+```
+
+Two things happen once you do this. Product code becomes boring in the best way —
+`size`, `variant`, `colorScheme`, done. And if you ever need to replace the
+underlying library, the blast radius is one package, not the whole app.
+
+## Make the system testable and visible
+
+A design system nobody can see becomes a design system nobody follows. The
+components need a home where designers and engineers can look at every variant,
+in every size, and _play_ with the props.
+
+A tool like Storybook turns the exposed API into living documentation. If a prop
+isn't worth putting in a story, it probably shouldn't be a public prop.
+
+```tsx
+export default { title: "Button", component: Button };
+
+const variants = ["solid", "outline", "ghost"] as const;
+const sizes = ["sm", "md", "lg"] as const;
+
+export const AllVariants = () => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    {variants.map((variant) => (
+      <section key={variant}>
+        <h3 style={{ marginBottom: 8, textTransform: "capitalize" }}>
+          {variant}
+        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {sizes.map((size) => (
+            <Button
+              key={size}
+              variant={variant}
+              size={size}
+              colorScheme="primary"
+            >
+              {size}
+            </Button>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+);
+```
+
+The stories also become the contract. When someone wants a new capability, the
+question is "does this belong in the story?" which keeps the API honest and
+stops the prop-creep that started the whole mess.
+
+## Enforce the boundaries
+
+A system only holds if the rules are enforced, not merely suggested. The
+non-negotiables that keep it from decaying:
+
+1. Color decisions live in the palette, never in components.
+2. States are derived from tokens, never hand-coded per element.
+3. Product code imports from the design system, never from the vendor directly.
+4. If it isn't in a story with a documented prop, it isn't part of the public
+   API.
+
+## The real payoff
+
+The reward for this discipline shows up when a requirement lands that would
+otherwise be a nightmare. White-labeling is the classic one: a customer wants the
+whole product in their brand colors. With raw colors sprinkled across components,
+that's weeks of find-and-replace and regression bugs. With a token-driven system,
+it's a new palette and a rebuild days, not weeks.
+
+That's the quiet trade at the heart of a good design system. You pay a small,
+deliberate cost early, and in return the expensive changes later become cheap.
+The best systems aren't the ones with the most components. They're the ones where
+changing your mind is easy.
