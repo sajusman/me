@@ -1,0 +1,28 @@
+name: Supabase keep-alive
+
+# Supabase's free tier pauses a project after ~7 days of inactivity. This
+# workflow runs a trivial query on a schedule so the project stays active.
+
+on:
+  schedule:
+    # Every day at 07:00 UTC. Cron runs in UTC.
+    - cron: "0 7 * * *"
+  # Allow running it manually from the Actions tab.
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the database
+        env:
+          # Add this in: repo Settings -> Secrets and variables -> Actions.
+          # Use the DIRECT connection string (port 5432), NOT the pooler.
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: |
+          if [ -z "$DIRECT_URL" ]; then
+            echo "::error::DIRECT_URL secret is not set."
+            exit 1
+          fi
+          # psql ships preinstalled on ubuntu-latest runners.
+          psql "$DIRECT_URL" -c "select now() as kept_alive_at;"
