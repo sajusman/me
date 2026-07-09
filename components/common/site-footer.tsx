@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { site } from "@/lib/site";
 import { Mail } from "lucide-react";
-import { GithubIcon, LinkedinIcon } from "@/components/brand-icons";
+import { GithubIcon, LinkedinIcon } from "@/components/common/brand-icons";
 
 const YEAR = new Date().getFullYear();
 

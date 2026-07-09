@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { navItems, site } from "@/lib/site";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/common/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { GithubIcon, LinkedinIcon } from "@/components/brand-icons";
-import { MobileNav } from "./mobile-nav";
+import { GithubIcon, LinkedinIcon } from "@/components/common/brand-icons";
+import { MobileNav } from "@/components/common/mobile-nav";
 
 export function SiteHeader() {
   const initials = site.name
