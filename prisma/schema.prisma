@@ -48,3 +48,26 @@ model Comment {
   @@index([authorId])
   @@map("comments")
 }
+
+/// An append-only history of every comment body a user has ever submitted.
+/// Written when a comment or reply is created; never updated or deleted by the
+/// app. Deleting a Comment leaves its log rows intact — the references here are
+/// plain scalars (no cascading foreign keys), so the audit trail outlives both
+/// the comment and, if it were removed, the author's profile.
+model CommentLog {
+  id       String  @id @default(uuid())
+  // The comment this log entry captures. Kept as a plain scalar (not an FK
+  // relation) so the row survives after the comment is deleted.
+  commentId String?
+  postSlug  String
+  authorId  String
+  body      String
+  // What produced this entry (e.g. "create"). Room to grow to "edit" later.
+  action    String   @default("create")
+  createdAt DateTime @default(now())
+
+  @@index([commentId])
+  @@index([authorId])
+  @@index([postSlug, createdAt])
+  @@map("comment_logs")
+}

@@ -64,9 +64,23 @@ export async function createComment(input: {
   const postSlug = assertValidSlug(input.postSlug);
   const body = assertValidBody(input.body);
 
-  const row = await prisma.comment.create({
-    data: { postSlug, body, authorId: input.authorId, parentId: null },
-    include: authorInclude,
+  const row = await prisma.$transaction(async (tx) => {
+    const created = await tx.comment.create({
+      data: { postSlug, body, authorId: input.authorId, parentId: null },
+      include: authorInclude,
+    });
+    // Append-only history: record exactly what was submitted. Kept forever,
+    // even after the comment itself is deleted.
+    await tx.commentLog.create({
+      data: {
+        commentId: created.id,
+        postSlug,
+        authorId: input.authorId,
+        body,
+        action: "create",
+      },
+    });
+    return created;
   });
 
   return toCommentView(row);

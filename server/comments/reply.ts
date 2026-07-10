@@ -29,7 +29,11 @@ export async function createReply(input: {
   const parentId = assertValidParentId(input.parentId);
 
   if (!parentId) {
-    throw new CommentError(400, "invalid_parent", "A parent comment is required.");
+    throw new CommentError(
+      400,
+      "invalid_parent",
+      "A parent comment is required.",
+    );
   }
 
   const parent = await prisma.comment.findUnique({
@@ -60,9 +64,21 @@ export async function createReply(input: {
     );
   }
 
-  const row = await prisma.comment.create({
-    data: { postSlug, body, authorId: input.authorId, parentId },
-    include: authorInclude,
+  const row = await prisma.$transaction(async (tx) => {
+    const created = await tx.comment.create({
+      data: { postSlug, body, authorId: input.authorId, parentId },
+      include: authorInclude,
+    });
+    await tx.commentLog.create({
+      data: {
+        commentId: created.id,
+        postSlug,
+        authorId: input.authorId,
+        body,
+        action: "create",
+      },
+    });
+    return created;
   });
 
   return toCommentView(row);
