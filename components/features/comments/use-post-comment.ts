@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-import { postComment } from "@/server/comments/actions";
+import { postCommentAction, postReplyAction } from "@/server/comments/actions";
 
 /**
- * Client hook that wraps the postComment Server Action: submits, shows a toast,
- * and calls router.refresh() so the server-rendered comment list re-renders
- * with the new comment.
+ * Client hook that wraps the postComment / postReply Server Actions: submits,
+ * shows a toast, and calls router.refresh() so the server-rendered comment list
+ * re-renders with the new comment.
  */
 export function usePostComment(postSlug: string) {
   const router = useRouter();
@@ -19,7 +19,9 @@ export function usePostComment(postSlug: string) {
     body: string,
     parentId: string | null,
   ): Promise<boolean> {
-    const result = await postComment({ postSlug, body, parentId });
+    const result = parentId
+      ? await postReplyAction({ postSlug, body, parentId })
+      : await postCommentAction({ postSlug, body });
 
     if (!result.ok) {
       toast.error(result.error);

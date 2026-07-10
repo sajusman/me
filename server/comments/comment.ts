@@ -3,7 +3,9 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import type { CommentThread, CommentView } from "@/types/comments";
 import {
+  CommentError,
   assertValidBody,
+  assertValidParentId,
   assertValidSlug,
   authorInclude,
   toCommentView,
@@ -68,4 +70,37 @@ export async function createComment(input: {
   });
 
   return toCommentView(row);
+}
+
+/**
+ * Deletes a comment (or reply) authored by the given profile.
+ *
+ * Enforces ownership: a profile can only delete its own comment. Deleting a
+ * top-level comment cascades to its replies (see the schema's onDelete rule).
+ * Returns the postSlug so the caller can revalidate the right path.
+ */
+export async function deleteComment(input: {
+  commentId: string;
+  authorId: string;
+}): Promise<{ postSlug: string }> {
+  const commentId = assertValidParentId(input.commentId);
+  if (!commentId) {
+    throw new CommentError(400, "invalid_comment", "A comment id is required.");
+  }
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { id: true, authorId: true, postSlug: true },
+  });
+
+  if (!comment) {
+    throw new CommentError(404, "comment_missing", "This comment no longer exists.");
+  }
+  if (comment.authorId !== input.authorId) {
+    throw new CommentError(403, "not_owner", "You can only delete your own comments.");
+  }
+
+  await prisma.comment.delete({ where: { id: comment.id } });
+
+  return { postSlug: comment.postSlug };
 }
