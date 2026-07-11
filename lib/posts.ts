@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { cache } from "react";
 import type { Post, PostMeta } from "@/types/posts";
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "blog");
@@ -13,8 +14,12 @@ function estimateReadingTime(raw: string): string {
 /**
  * Reads every `.mdx` file in content/blog and extracts its exported
  * `metadata` object. Runs only on the server at build/prerender time.
+ *
+ * Wrapped in React's `cache` so the filesystem is read and parsed at most
+ * once per render, even though several callers (page, generateMetadata, OG
+ * image, sitemap, feed) all funnel through here.
  */
-export function getAllPosts(): Post[] {
+export const getAllPosts = cache((): Post[] => {
   if (!fs.existsSync(CONTENT_DIR)) return [];
 
   const files = fs
@@ -35,14 +40,12 @@ export function getAllPosts(): Post[] {
   });
 
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
-}
+});
 
+// Derived from getAllPosts so there's a single filesystem code path. Slugs
+// come back in date-sorted (newest-first) order.
 export function getPostSlugs(): string[] {
-  if (!fs.existsSync(CONTENT_DIR)) return [];
-  return fs
-    .readdirSync(CONTENT_DIR)
-    .filter((file) => file.endsWith(".mdx"))
-    .map((file) => file.replace(/\.mdx$/, ""));
+  return getAllPosts().map((post) => post.slug);
 }
 
 export function getPostMeta(slug: string): Post | undefined {
