@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -8,6 +9,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { SiteHeader } from "@/components/common/site-header";
 import { SiteFooter } from "@/components/common/site-footer";
 import { MouseGlow } from "@/components/common/mouse-glow";
+import { RefTracker } from "@/components/common/ref-tracker";
 import { Toaster } from "@/components/ui/sonner";
 import { site } from "@/lib/site";
 
@@ -89,6 +91,9 @@ export default function RootLayout({
           <SiteFooter />
           <Toaster />
         </ThemeProvider>
+        <Suspense fallback={null}>
+          <RefTracker />
+        </Suspense>
         <Analytics />
         <SpeedInsights />
       </body>

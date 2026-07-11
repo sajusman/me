@@ -27,6 +27,30 @@ model Profile {
   @@map("profiles")
 }
 
+/// Tracks referral sources (the `?ref=` query param, e.g. "cv", "linkedin",
+/// "github") per anonymous session. One row per (sessionId, ref) pair: repeated
+/// opens from the same session bump `openCount` and `lastOpenedAt` rather than
+/// inserting new rows. The `@@unique([sessionId, ref])` is what enforces this
+/// and makes the upsert race-safe (a losing insert hits the constraint and is
+/// retried as an update — see server/referrals/referral.ts).
+model Referral {
+  id            String   @id @default(uuid())
+  // Links this open to the signed session cookie set by proxy.ts.
+  sessionId     String
+  // The referral source, e.g. "cv" / "linkedin" / "github".
+  ref           String
+  // The path where the ref was first seen (e.g. "/").
+  path          String
+  // How many times this session has opened a page carrying this ref.
+  openCount     Int      @default(1)
+  firstOpenedAt DateTime @default(now())
+  lastOpenedAt  DateTime @default(now())
+
+  @@unique([sessionId, ref])
+  @@index([ref, lastOpenedAt])
+  @@map("referrals")
+}
+
 /// A comment on a blog post. Top-level comments have `parentId = null`; replies
 /// point at their parent. Depth is capped at one level (a reply cannot itself be
 /// replied to) — enforced in application code (api/comments/reply.ts).

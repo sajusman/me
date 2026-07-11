@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { REF_URL_HEADER } from "@/lib/ref-header";
 import {
   SESSION_COOKIE,
   SESSION_COOKIE_MAX_AGE,
@@ -19,7 +20,12 @@ import {
  * with a Set-Cookie header, so the static shell is never bypassed.
  */
 export async function proxy(request: NextRequest) {
-  const response = NextResponse.next();
+  // Forward the request path so the root layout can attribute a `?ref=` open
+  // regardless of which route it lands on (layouts don't receive searchParams).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(REF_URL_HEADER, request.nextUrl.pathname + request.nextUrl.search);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
