@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Writing",
   description:
     "Essays on engineering, building consumer products, teams, and levelling up.",
+  alternates: {
+    canonical: "/blog",
+  },
 };
 
 export default function BlogIndex() {

@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { SiteHeader } from "@/components/common/site-header";
 import { SiteFooter } from "@/components/common/site-footer";
 import { MouseGlow } from "@/components/common/mouse-glow";
 import { Toaster } from "@/components/ui/sonner";
+import { site } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -19,7 +21,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://sajusman.vercel.app";
+const siteUrl = site.url;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -38,7 +40,14 @@ export const metadata: Metadata = {
     "Node.js",
     "Django",
   ],
-  authors: [{ name: "Usman Sajjad" }],
+  authors: [{ name: "Usman Sajjad", url: siteUrl }],
+  creator: "Usman Sajjad",
+  alternates: {
+    canonical: "/",
+    types: {
+      "application/rss+xml": [{ url: "/feed.xml", title: "Usman Sajjad — Writing" }],
+    },
+  },
   openGraph: {
     type: "website",
     url: siteUrl,
@@ -46,6 +55,7 @@ export const metadata: Metadata = {
     description:
       "Building cross-platform consumer products. Writing about engineering, teams, and scale.",
     siteName: "Usman Sajjad",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
@@ -80,6 +90,7 @@ export default function RootLayout({
           <Toaster />
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -3,6 +3,7 @@ import type { SkillGroup, Experience, Project } from "@/types/site";
 export const site = {
   name: "Usman Sajjad",
   role: "Senior Software Engineer",
+  url: "https://sajusman.vercel.app",
   location: "Berlin, Germany",
   email: "usmansajjad21@gmail.com",
   phone: "+49 1573 2291652",
