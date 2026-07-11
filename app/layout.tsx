@@ -21,18 +21,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = site.url;
+const ogDescription =
+  "Building cross-platform consumer products. Writing about engineering, teams, and scale.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(site.url),
   title: {
-    default: "Usman Sajjad — Senior Software Engineer",
-    template: "%s · Usman Sajjad",
+    default: site.title,
+    template: `%s · ${site.name}`,
   },
-  description:
-    "Senior software engineer building cross-platform consumer products with React Native, Node, and Django. Writing about engineering, teams, and building things that scale.",
+  description: site.description,
   keywords: [
-    "Usman Sajjad",
+    site.name,
     "Software Engineer",
     "React Native",
     "Next.js",
@@ -40,28 +40,28 @@ export const metadata: Metadata = {
     "Node.js",
     "Django",
   ],
-  authors: [{ name: "Usman Sajjad", url: siteUrl }],
-  creator: "Usman Sajjad",
+  authors: [{ name: site.name, url: site.url }],
+  creator: site.name,
   alternates: {
     canonical: "/",
     types: {
-      "application/rss+xml": [{ url: "/feed.xml", title: "Usman Sajjad — Writing" }],
+      "application/rss+xml": [
+        { url: "/feed.xml", title: `${site.name} — Writing` },
+      ],
     },
   },
   openGraph: {
     type: "website",
-    url: siteUrl,
-    title: "Usman Sajjad — Senior Software Engineer",
-    description:
-      "Building cross-platform consumer products. Writing about engineering, teams, and scale.",
-    siteName: "Usman Sajjad",
+    url: site.url,
+    title: site.title,
+    description: ogDescription,
+    siteName: site.name,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Usman Sajjad — Senior Software Engineer",
-    description:
-      "Building cross-platform consumer products. Writing about engineering, teams, and scale.",
+    title: site.title,
+    description: ogDescription,
   },
 };
 

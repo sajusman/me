@@ -1,9 +1,23 @@
 import type { SkillGroup, Experience, Project } from "@/types/site";
 
+const name = "Usman Sajjad";
+const role = "Senior Software Engineer";
+const url = "https://usmansajjad.com";
+
 export const site = {
-  name: "Usman Sajjad",
-  role: "Senior Software Engineer",
-  url: "https://sajusman.vercel.app",
+  name,
+  role,
+  url,
+  // Bare domain (no protocol) for display, e.g. in OG cards.
+  domain: url.replace(/^https?:\/\//, ""),
+  // Composed "Name — Role" used across metadata titles and OG alt text.
+  title: `${name} — ${role}`,
+  // Uppercase initials from the name, e.g. for the OG avatar badge.
+  initials: name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase(),
   location: "Berlin, Germany",
   email: "usmansajjad21@gmail.com",
   phone: "+49 1573 2291652",
@@ -11,6 +25,8 @@ export const site = {
     "building high-impact, cross-platform products with a focus on scalability, performance, and user experience.",
   summary:
     "Senior software engineer with a bias for shipping. I've taken products from zero to real revenue, built shared codebases that run natively on iOS, Android, and web, and levelled up fast by owning ambiguous problems alongside design and delivery.",
+  description:
+    "Senior software engineer building cross-platform consumer products with React Native, Node, and Django. Writing about engineering, teams, and building things that scale.",
   links: {
     github: "https://github.com/sajusman",
     linkedin: "https://linkedin.com/in/usman-sajjad",

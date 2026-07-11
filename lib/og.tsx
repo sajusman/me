@@ -82,7 +82,7 @@ export function renderOgImage({ title, eyebrow, meta }: OgImageOptions) {
                 fontWeight: 700,
               }}
             >
-              US
+              {site.initials}
             </div>
             <span style={{ color: "#fafafa", fontWeight: 600 }}>
               {site.name}
