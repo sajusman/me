@@ -20,7 +20,6 @@ export const site = {
     .toUpperCase(),
   location: "Berlin, Germany",
   email: "usmansajjad21@gmail.com",
-  phone: "+49 1573 2291652",
   tagline:
     "building high-impact, cross-platform products with a focus on scalability, performance, and user experience.",
   summary:
