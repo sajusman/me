@@ -16,4 +16,5 @@ export type Project = {
   context: string;
   award?: string;
   description: string;
+  url?: string;
 };
