@@ -159,3 +159,13 @@ html:not(.dark) [data-rehype-pretty-code-figure] span[data-line] span {
 .dark [data-rehype-pretty-code-figure] span[data-line] span {
   color: var(--shiki-dark) !important;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .project-card:hover .project-preview {
+    opacity: 1;
+  }
+
+  .project-preview {
+    transition: opacity 180ms ease-out;
+  }
+}

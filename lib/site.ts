@@ -166,6 +166,13 @@ export const experience: Experience[] = [
 
 export const projects: Project[] = [
   {
+    name: "Karawan",
+    context: "Tour Operations Platform",
+    description:
+      "A professional platform for planning and managing guided tours across Pakistan.",
+    url: "https://karawaan.pk/",
+  },
+  {
     name: "Onebeat",
     context: "Remotebase Hackfest",
     award: "3rd Place Winner",
