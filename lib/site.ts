@@ -167,9 +167,9 @@ export const experience: Experience[] = [
 export const projects: Project[] = [
   {
     name: "Karawan",
-    context: "Supporting a friend's project",
+    context: "Tour Operations Platform",
     description:
-      "Helped build karawan.pk to support a friend's project and bring their idea to life on the web.",
+      "A professional platform for planning and managing guided tours across Pakistan.",
     url: "https://karawan.pk",
   },
   {
