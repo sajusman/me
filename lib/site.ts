@@ -170,7 +170,7 @@ export const projects: Project[] = [
     context: "Tour Operations Platform",
     description:
       "A professional platform for planning and managing guided tours across Pakistan.",
-    url: "https://karawan.pk",
+    url: "https://karawaan.pk/",
   },
   {
     name: "Onebeat",
